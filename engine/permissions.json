@@ -1,0 +1,4 @@
+{
+  "agent1": ["read", "write"],
+  "agent2": ["read"]
+}

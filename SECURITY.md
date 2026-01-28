@@ -1,61 +1,78 @@
 # Security Policy
 
-If you believe you've found a security issue in Moltbot, please report it privately.
+moltbot-safe is security-first: minimal, explicit, isolated, and auditable by design.
 
-## Reporting
+## Security Posture
+- **Least Privilege**: Agents can only perform actions explicitly allowed in `permissions.json`.
+- **Isolation**: All agent actions are sandboxed; no access outside the sandbox.
+- **Transparency**: Every action—allowed or denied—is logged.
+- **No Implicit Capabilities**: No inferred or default permissions.
+- **No Autonomous Expansion**: The engine cannot grant itself new abilities.
 
-- Email: `steipete@gmail.com`
-- What to include: reproduction steps, impact assessment, and (if possible) a minimal PoC.
+## Threat Model Boundaries
+- **In Scope**: Malicious or buggy agents, misconfigured permissions, audit log tampering.
+- **Out of Scope**: OS-level sandbox escapes, external attackers not acting through the agent.
 
-## Operational Guidance
+## Responsible Disclosure
+If you discover a vulnerability, open a private security advisory or contact the maintainers. Do not disclose vulnerabilities publicly until resolved. Provide details, steps to reproduce, and suggested mitigations if possible.
 
-For threat model + hardening guidance (including `moltbot security audit --deep` and `--fix`), see:
+The engine should never grant an agent more access than explicitly defined in `permissions.json`.
 
-- `https://docs.molt.bot/gateway/security`
+### 2. Isolation by Default
+All agent actions must occur inside the sandbox directory.  
+No direct filesystem access outside the sandbox is permitted.
 
-### Web Interface Safety
+### 3. Transparent Execution
+Every attempted action—allowed or denied—must be logged in `audit.log`.
 
-Moltbot's web interface is intended for local use only. Do **not** bind it to the public internet; it is not hardened for public exposure.
+### 4. No Implicit Capabilities
+The engine must never infer or assume permissions.  
+All capabilities must be explicitly declared.
 
-## Runtime Requirements
+### 5. No Autonomous Expansion
+The engine must not add new abilities, escalate privileges, or modify its own permissions without human intervention.
 
-### Node.js Version
+---
 
-Moltbot requires **Node.js 22.12.0 or later** (LTS). This version includes important security patches:
+## Threat Model (High-Level)
 
-- CVE-2025-59466: async_hooks DoS vulnerability
-- CVE-2026-21636: Permission model bypass vulnerability
+**moltbot-safe** assumes the following:
 
-Verify your Node.js version:
+### In-Scope Threats
+- Malicious or buggy agent requests  
+- Attempts to escape the sandbox  
+- Attempts to access unauthorized files  
+- Attempts to perform network operations without permission  
+- Attempts to modify permissions or audit logs  
+- Malformed or adversarial action schemas  
 
-```bash
-node --version  # Should be v22.12.0 or later
-```
+### Out-of-Scope Threats
+- Host OS compromise  
+- Kernel-level attacks  
+- Hardware-level attacks  
+- Supply-chain attacks outside this repository  
 
-### Docker Security
+This project focuses on **application-level safety**, not full system hardening.
 
-When running Moltbot in Docker:
+---
 
-1. The official image runs as a non-root user (`node`) for reduced attack surface
-2. Use `--read-only` flag when possible for additional filesystem protection
-3. Limit container capabilities with `--cap-drop=ALL`
+## Security Roadmap
 
-Example secure Docker run:
+- Add optional network sandboxing  
+- Add permission scopes for subprocesses  
+- Add integrity checks for audit logs  
+- Add test suite for sandbox escape attempts  
+- Add fuzz testing for action schema validation  
 
-```bash
-docker run --read-only --cap-drop=ALL \
-  -v moltbot-data:/app/data \
-  moltbot/moltbot:latest
-```
+---
 
-## Security Scanning
+## Responsible Use
 
-This project uses `detect-secrets` for automated secret detection in CI/CD.
-See `.detect-secrets.cfg` for configuration and `.secrets.baseline` for the baseline.
+This project is intended to help developers build safer agentic systems.  
+It should not be used to grant unrestricted system access to autonomous agents.
 
-Run locally:
+Use responsibly, and always review permissions before deploying.
 
-```bash
-pip install detect-secrets==1.5.0
-detect-secrets scan --baseline .secrets.baseline
-```
+---
+
+Thank you for helping keep **moltbot-safe** secure.
